@@ -2,26 +2,26 @@
 Written by T.K.C. 10/13/2026
 """
 
-import scipy.io
 import numpy as np
+import scipy.io
 
 RAW_DATA_FILENAME = 'data/LexusData.mat'
 
 # Load the .mat file
 data = scipy.io.loadmat(RAW_DATA_FILENAME)
-print(data['theta_deg'])
+angle = data['theta_deg'].flatten()[0]
+#unit_note = data['units_note']
+# time in seconds, v1 in m/s
 
-header = list(data.keys())
-skip = ['__header__', '__version__', '__globals__', 'units_note']
-for item in skip:
-    if item in header:
-        header.remove(item)
+coast_north = {}
+coast_north['t'] = data['t1']
+coast_north['v'] = data['v1']
+coast_north['θ'] = angle
 
-data_array = np.zeros((max([len(data[key]) for key in header]), len(header)))
+coast_south = {}
+coast_south['t'] = data['t2']
+coast_south['v'] = data['v2']
+coast_south['θ'] = -angle
 
-for i, key in enumerate(header):
-    col_data = data[key].flatten()
-    data_array[:len(col_data), i] = col_data
-
-# Save the data to a CSV file
-np.savetxt(CLEAN_DATA_FILENAME, data_array, delimiter=',', header=','.join(header), fmt='%s')
+print(coast_north)
+print(coast_south)
