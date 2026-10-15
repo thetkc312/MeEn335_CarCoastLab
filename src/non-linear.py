@@ -42,7 +42,7 @@ coast_south['v'] = coast_south['v'][south_unique]
 
 # --- Reducing dataset density such that only pairs where the GPS data has updated are included
 # This was implemented with the support of ChatGPT-5.6 Luna
-if False: #Optional data-cleaning method prior to analysis
+if True: #Optional data-cleaning method prior to analysis
     north_updated = np.r_[True, np.diff(coast_north['v']) != 0]
     coast_north['t'] = coast_north['t'][north_updated]
     coast_north['v'] = coast_north['v'][north_updated]
@@ -56,7 +56,7 @@ if False: #Optional data-cleaning method prior to analysis
 # This could be a consequence of it being correlated with the first GPS
 # position coordinate, where it would not have been possible to effectively
 # determine velocity as a function of two position points.
-if False: #Optional data-cleaning method prior to analysis
+if True: #Optional data-cleaning method prior to analysis
     coast_north['t'] = coast_north['t'][1:]
     coast_north['v'] = coast_north['v'][1:]
     coast_south['t'] = coast_south['t'][1:]
@@ -83,7 +83,7 @@ f_kfriction = lambda k, θ: k * m * gravity * np.cos(θ)
 vw_north = vw
 vw_south = -vw
 
-# --- Comparing prediction to reality and quantifying error (cumulatively for north and south)
+# --- Making a prediction based on given parameters
 def predict(Cd, k, dataset, vw, f_g):
     times = dataset['t']
     vel = dataset['v']
@@ -99,6 +99,8 @@ def predict(Cd, k, dataset, vw, f_g):
         raise RuntimeError(result.message)
     return result
 
+
+# --- Defining the error function to be minimized
 def ivp_res_error(arr_Cd_k):
     Cd = arr_Cd_k[0]
     k = arr_Cd_k[1]
@@ -110,6 +112,7 @@ def ivp_res_error(arr_Cd_k):
     errors = np.concatenate((north_errors, south_errors))
     mse = np.mean(np.abs(errors)**2)
     return mse
+
 
 # --- Using scipy.optimize.shgo to find the optimal values of Cd and k that minimize the error
 # This method is better than using scipy.optimize.minimize because it can handle multiple local minima, which I suspected might be possible.
