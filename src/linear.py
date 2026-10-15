@@ -15,15 +15,15 @@ angle = np.deg2rad(data['theta_deg'].item())
 # time in seconds, v1 in m/s
 
 # --- Formatting useful dictionaries of data
-coast_north = {}
-coast_north['t'] = data['t1'].flatten()
-coast_north['v'] = data['v1'].flatten()
-coast_north['θ'] = angle
-
 coast_south = {}
-coast_south['t'] = data['t2'].flatten()
-coast_south['v'] = data['v2'].flatten()
+coast_south['t'] = data['t1'].flatten()
+coast_south['v'] = data['v1'].flatten()
 coast_south['θ'] = -angle
+
+coast_north = {}
+coast_north['t'] = data['t2'].flatten()
+coast_north['v'] = data['v2'].flatten()
+coast_north['θ'] = angle
 
 # --- Sorting and removing duplicates based on time for time and velocity
 north_order = np.argsort(coast_north['t'])
@@ -65,7 +65,7 @@ if False: #Optional data-cleaning method prior to analysis
 # Y = [v]
 dYdt = lambda t, Y, m, b, f_t: (f_t(t) - b*Y[0]) / m
 mass = 1760 + 150 #kg
-f_gravity = lambda m, g, θ: m * g * np.sin(θ)
+f_gravity = lambda m, g, θ: -m * g * np.sin(θ)
 gravity = 9.81 #m/s^2
 
 f_t_g_north = lambda t: f_gravity(mass, gravity, coast_north['θ'])
@@ -83,8 +83,8 @@ def ivp_res_error(b):
     north_errors = predict(b, coast_north, f_t_g_north) - coast_north['v']
     south_errors = predict(b, coast_south, f_t_g_south) - coast_south['v']
     errors = np.concatenate((north_errors, south_errors))
-    sse = np.sum(np.abs(errors)**2)
-    return sse
+    mse = np.mean(np.abs(errors)**2)
+    return mse
 
 opt_res = scipy.optimize.minimize(ivp_res_error, [20])
 print(opt_res)
